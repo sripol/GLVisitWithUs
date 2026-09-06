@@ -1,0 +1,28 @@
+name: Tourism Project Pipeline
+on:
+  push:
+    branches:
+      - main
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    permissions: 
+      contents: write
+    steps:
+      - name: checkout repository 
+        uses: actions/checkout@v4
+      - name: Install
+        run: pip install -r tourism_project/requirements.txt
+      - name: Register
+        run: python tourism_project/model_building/register.py
+      - name: Prep
+        run: python tourism_project/model_building/prep.py
+      - name: Train
+        run: python tourism_project/model_building/train.py
+      - name: Commit Model
+        run: |
+          git config user.name "bot"
+          git pull --rebase origin main
+          git add tourism_project/deployment/model.joblib
+          git commit -m "Update model" || echo "No changes"
+          git push origin main
